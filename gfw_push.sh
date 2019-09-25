@@ -5,19 +5,19 @@ export PATH
 #=================================================
 #	System Required: CentOS/Debian/Ubuntu
 #	Description: 监测IP是否被墙并推送消息至Telegram
-#	Version: 1.0.2
+#	Version: 1.0.4
 #	Author: Toyo
 #	Blog: https://doub.io/shell-jc8/
 #=================================================
 
-sh_ver="1.0.2"
+sh_ver="1.0.4"
 filepath=$(cd "$(dirname "$0")"; pwd)
 file_1=$(echo -e "${filepath}"|awk -F "$0" '{print $1}')
 Crontab_file="/usr/bin/crontab"
 CONF="${file_1}/gfw_push.conf"
 LOG_file="${file_1}/gfw_push.log"
 Test_link="www.189.cn
-www.10010.cn
+biz.10010.com
 www.10086.cn"
 Test_UA="Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36
 Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36
@@ -224,22 +224,32 @@ Test_SILL(){
 }
 Test(){
 	Detailed_output="${1}"
+	all_status_num="0"
+	Return_status_debug=""
+	status_num_debug=""
 	Test_total=$(echo "${Test_link}"|wc -l)
 	for((integer = 1; integer <= ${Test_total}; integer++))
 	do
 		UA_num=$(rand 1 12)
 		UA=$(echo "${Test_UA}"|sed -n "${UA_num}p")
 		now_URL=$(echo "${Test_link}"|sed -n "${integer}p")
-		wget --spider -nv -t2 -T5 -U "${UA}" "${now_URL}" -o "http_code.tmp"
+		wget --spider -nv -t2 -T5 -4 -U "${UA}" "${now_URL}" -o "http_code.tmp"
+		#wget --spider -nv -t2 -T5 -U "${UA}" "${now_URL}" &> /dev/null
+		return_code=$(echo $?)
 		#cat "http_code.tmp"
-		Return_status=$(cat "http_code.tmp"|awk '{print $NF}')
+		#Return_status=$(cat "http_code.tmp"|sed -n '$p'|awk '{print $NF}')
+		Return_status_debug="${Return_status_debug} | $(cat "http_code.tmp")"
+		return_code_debug="${return_code_debug} | ${return_code}"
+		#Return_status_debug="${Return_status_debug} | ${return_code}"
 		#echo "${Return_status}"
 		rm -rf "http_code.tmp"
-		if [[ "${Return_status}" == "OK" ]]; then
+		if [[ "${return_code}" == "0" ]]; then
 			status_num="1"
+			status_num_debug="${status_num_debug} | ${status_num}"
 			[[ "${Detailed_output}" == "1" ]] && echo -e "${Info} 正常连接至 [${now_URL}] 。"
 		else
 			status_num="0"
+			status_num_debug="${status_num_debug} | ${status_num}"
 			[[ "${Detailed_output}" == "1" ]] && echo -e "${Error} 无法连接至 [${now_URL}] 。"
 		fi
 		all_status_num=$(echo $((${all_status_num}+${status_num})))
@@ -255,8 +265,12 @@ crontab_monitor(){
 	elif [[ "${all_status_num}" == "0" ]]; then
 		sill_new=$(echo $((${SILL_NOW}+1)))
 		Write_config_now_sill
-		echo -e "${Error} ${DATE} 全部 URL 测试失败！该服务器可能被墙，推送中..."| tee -a ${LOG_file}
-		POST_TG
+		echo "${Return_status_debug} / ${return_code_debug} / ${status_num_debug} / ${all_status_num}" >> ${LOG_file}
+		echo -e "${Error} ${DATE} 全部 URL 测试失败！该服务器可能被墙，累计次数中..."| tee -a ${LOG_file}
+		if [[ "${sill_new}" == "3" ]]; then
+			echo -e "${Error} ${DATE} 疑似被墙次数累计超过 ${Test_total} 次，开始推送..."| tee -a ${LOG_file}
+			POST_TG
+		fi
 	else
 		sill_new="0"
 		Write_config_now_sill
