@@ -98,7 +98,7 @@ install_caddy(){
 	Download_caddy
 	Service_caddy
 	echo && echo -e " Caddy 使用命令：${caddy_conf_file}
- 日志文件：cat /tmp/caddy.log
+ 日志文件：cat /root/caddy/caddy.log
  使用说明：service caddy start | stop | restart | status
  或者使用：/etc/init.d/caddy start | stop | restart | status
  ${Info_font_prefix}[信息]${Font_suffix} Caddy 安装完成！" && echo
@@ -116,7 +116,7 @@ uninstall_caddy(){
 		else
 			update-rc.d -f caddy remove
 		fi
-		[[ -s /tmp/caddy.log ]] && rm -rf /tmp/caddy.log
+		[[ -s /root/caddy/caddy.log ]] && rm -rf /root/caddy/caddy.log
 		rm -rf ${caddy_file}
 		rm -rf ${caddy_conf_file}
 		rm -rf /etc/init.d/caddy
