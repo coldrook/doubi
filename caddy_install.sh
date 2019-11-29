@@ -10,7 +10,7 @@ export PATH
 #=================================================
 file="/usr/local/caddy/"
 caddy_file="/usr/local/caddy/caddy"
-caddy_conf_file="/usr/local/caddy/Caddyfile"
+caddy_conf_file="/usr/local/caddy/caddy.conf"
 Info_font_prefix="\033[32m" && Error_font_prefix="\033[31m" && Info_background_prefix="\033[42;37m" && Error_background_prefix="\033[41;37m" && Font_suffix="\033[0m"
 
 check_root(){
@@ -71,14 +71,14 @@ Download_caddy(){
 }
 Service_caddy(){
 	if [[ ${release} = "centos" ]]; then
-		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/caddy_centos -O /etc/init.d/caddy; then
+		if ! wget --no-check-certificate https://raw.githubusercontent.com/coldrook/doubi/master/service/caddy_centos -O /etc/init.d/caddy; then
 			echo -e "${Error_font_prefix}[错误]${Font_suffix} Caddy服务 管理脚本下载失败 !" && exit 1
 		fi
 		chmod +x /etc/init.d/caddy
 		chkconfig --add caddy
 		chkconfig caddy on
 	else
-		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/caddy_debian -O /etc/init.d/caddy; then
+		if ! wget --no-check-certificate https://raw.githubusercontent.com/coldrook/doubi/master/service/caddy_debian -O /etc/init.d/caddy; then
 			echo -e "${Error_font_prefix}[错误]${Font_suffix} Caddy服务 管理脚本下载失败 !" && exit 1
 		fi
 		chmod +x /etc/init.d/caddy
